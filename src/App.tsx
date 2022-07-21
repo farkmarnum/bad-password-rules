@@ -1,25 +1,31 @@
-import logo from './logo.svg';
+import { useState } from 'react';
 import './App.css';
 
-function App() {
+const App = () => {
+  const [password, setPassword] = useState('');
+
+  // const errors = deriveErrors(password);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+    <div className="app">
+      <header>
+        <h1>Bad Password Rules</h1>
       </header>
+      <div className="main">
+        <input
+          className="password-input"
+          autoComplete="off" // No password managers please
+          data-lpignore="true" // Make LastPass ignore this field
+          type="password"
+          value={password}
+          onChange={(evt) => {
+            setPassword(evt.target.value);
+          }}
+        />
+        {/* <div className="errors">(errors here)</div> */}
+      </div>
     </div>
   );
-}
+};
 
 export default App;
