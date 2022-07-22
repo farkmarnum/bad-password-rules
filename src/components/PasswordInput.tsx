@@ -77,7 +77,12 @@ const PasswordInput = ({
 
     // TODO: support non-mac OS
     const shouldDeleteWord = modifiers.alt || modifiers.control;
-    const shouldDeleteAll = modifiers.meta;
+    let shouldDeleteAll = modifiers.meta;
+
+    // If password is hidden, don't parse words:
+    if (shouldDeleteWord && !shouldShowPassword) {
+      shouldDeleteAll = true;
+    }
 
     const { target } = evt;
     const { selectionStart, selectionEnd } = target;
@@ -92,15 +97,15 @@ const PasswordInput = ({
       case 'Backspace': {
         evt.preventDefault();
 
-        // Handle case where there is no selection:
+        // Handle the case where there is no selection:
         if (start === end) {
-          if (shouldDeleteWord) {
+          if (shouldDeleteAll) {
+            start = 0;
+          } else if (shouldDeleteWord) {
             const previousSpaceIndex = password.current
               .slice(0, start)
               .lastIndexOf(' ');
             start = previousSpaceIndex;
-          } else if (shouldDeleteAll) {
-            start = 0;
           } else {
             start -= 1;
           }
