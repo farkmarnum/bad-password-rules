@@ -27,7 +27,7 @@ h1 {
   margin: 0 auto;
 }
 
-.password-input {
+.main input {
   font-size: 32px;
   width: 100%;
   margin-bottom: 16px;
@@ -40,14 +40,5 @@ h1 {
   background: var(--main);
   color: var(--background);
 
-  outline: none;
-}
-
-.text-btn {
-
-  padding: 8px 12px;
-
-  border-radius: 6px;
-  border: none;
   outline: none;
 }
