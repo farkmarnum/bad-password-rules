@@ -3,6 +3,8 @@ import eyeOpened from '../../assets/eye-opened.png';
 import eyeClosed from '../../assets/eye-closed.png';
 import './PasswordInput.css';
 
+// TODO: fix emoji input
+
 const PasswordInput = ({
   setPassword: setPasswordParent,
 }: {
@@ -62,6 +64,8 @@ const PasswordInput = ({
     const start = selectionStart || 0;
     const end = selectionEnd || 0 + 1;
 
+    if (key === 'Enter') return;
+
     const newValue = [
       password.current.slice(0, start),
       key,
@@ -105,9 +109,21 @@ const PasswordInput = ({
           if (shouldDeleteAll) {
             start = 0;
           } else if (shouldDeleteWord) {
-            const previousSpaceIndex = password.current
-              .slice(0, start)
-              .lastIndexOf(' ');
+            const previousSpaceMatch = Array.from(
+              password.current.slice(0, start).trim().matchAll(/ +/g),
+            ).slice(-1)[0];
+
+            let previousSpaceIndex = 0;
+            if (previousSpaceMatch) {
+              const whiteSpaceStart = previousSpaceMatch?.index || 0;
+              const whitespaceLength = previousSpaceMatch[0].length;
+
+              previousSpaceIndex = whiteSpaceStart + whitespaceLength;
+              if (previousSpaceIndex === end) {
+                previousSpaceIndex -= whitespaceLength;
+              }
+            }
+
             start = previousSpaceIndex;
           } else {
             start -= 1;
@@ -154,9 +170,12 @@ const PasswordInput = ({
     }
   };
 
+  // TODO: handle cut event
+
+  // TODO: add "undo" support
+
   const handlePasteEvent = useCallback(
     (evt: ClipboardEvent) => {
-      console.log('HANDLE PASTE EVENT');
       const { target } = evt;
       if (!target) return;
 
@@ -185,15 +204,11 @@ const PasswordInput = ({
   useEffect(() => {
     if (ref.current) {
       ref.current.addEventListener('paste', handlePasteEvent);
-
-      return () => {
-        if (ref.current) {
-          ref.current.removeEventListener('paste', handlePasteEvent);
-        }
-      };
     }
 
-    return () => {};
+    return () => {
+      ref.current?.removeEventListener('paste', handlePasteEvent);
+    };
   }, [ref, handlePasteEvent]);
 
   return (

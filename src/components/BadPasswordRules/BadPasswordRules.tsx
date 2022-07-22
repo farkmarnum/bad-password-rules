@@ -32,6 +32,7 @@ const runValidations = (password: string, validations: Validations) =>
     id,
     msg,
     result: fn(password),
+    inputValue: password,
   }));
 
 const BadPasswordRules = () => {
@@ -82,7 +83,7 @@ const BadPasswordRules = () => {
 
       <div className="errors">
         <TransitionGroup>
-          {results.map(({ id, msg, result }) => (
+          {results.map(({ id, msg, result, inputValue }) => (
             <CSSTransition
               key={id}
               timeout={VALIDATION_ITEM_ANIMATION_TIME_MS}
@@ -109,7 +110,9 @@ const BadPasswordRules = () => {
                     </CSSTransition>
                   )}
                 </TransitionGroup>
-                <div className="validation-message">{msg}</div>
+                <div className="validation-message">
+                  {typeof msg === 'function' ? msg(inputValue) : msg}
+                </div>
               </div>
             </CSSTransition>
           ))}

@@ -1,4 +1,14 @@
-import { dogNameWords, ickyWords, colorWords } from './constants';
+// import emojiRegex from 'emoji-regex';
+import {
+  dogNameWords,
+  ickyWords,
+  swearWords,
+  censoredSwearWords,
+  colorWords,
+} from './constants';
+
+// const EMOJI_REGEX = emojiRegex();
+// console.log(EMOJI_REGEX);
 
 const SPECIAL_CHARACTER = /[!@#$%^&*()[\]{},.<>/?;:'"]/;
 
@@ -28,22 +38,8 @@ const easyValidations: Array<Validation> = [
     fn: (s) => SPECIAL_CHARACTER.test(s),
     msg: 'Password must contain a special character.',
   },
-  {
-    id: 'noPassword',
-    fn: (s) => s !== 'password',
-    msg: 'Password must not be "password".',
-  },
-  {
-    id: 'no123456',
-    fn: (s) => s !== '123456',
-    msg: 'Password must not be "123456".',
-  },
-  {
-    id: 'no123123123',
-    fn: (s) => s !== '123123123',
-    msg: 'Password must be "123123123".',
-  },
 ];
+
 const mediumValidations: Array<Validation> = [
   {
     id: 'repeatedCharacters',
@@ -52,13 +48,21 @@ const mediumValidations: Array<Validation> = [
   },
   {
     id: 'color',
-    fn: (s) => colorWords.some((word) => s.includes(word)),
+    fn: (s) => colorWords.some((word) => s.toLowerCase().includes(word)),
     msg: 'Password must contain a color.',
   },
   {
     id: 'dog',
-    fn: (s) => dogNameWords.some((word) => s.includes(word)),
+    fn: (s) => dogNameWords.some((word) => s.toLowerCase().includes(word)),
     msg: 'Password must contain a dog name.',
+  },
+  {
+    id: 'swearWords',
+    fn: (s) =>
+      [...swearWords, ...censoredSwearWords].some((word) =>
+        s.toLowerCase().includes(word),
+      ),
+    msg: 'Password must contain a swear word that is 4 letters.',
   },
 ];
 
@@ -74,9 +78,9 @@ const hardValidations: Array<Validation> = [
     msg: 'Password must not contain any icky words.',
   },
   {
-    id: 'lessThan64',
-    fn: (s) => s.length < 64,
-    msg: 'Password must have less than 64 characters.',
+    id: 'atMost20Characters',
+    fn: (s) => s.length <= 20,
+    msg: 'Password must have at most 20 characters.',
   },
   {
     id: 'multipleOf17',
@@ -137,8 +141,16 @@ const hardValidations: Array<Validation> = [
   },
   {
     id: 'no*',
-    fn: (s) => !s.includes('*'),
-    msg: 'Password must not contain an asterisk (*).',
+    // Handle censored swear word case:
+    fn: (s) =>
+      !s.includes('*') ||
+      censoredSwearWords.some((word) => s.toLowerCase().includes(word)),
+    msg: (s) =>
+      `Password must not contain an asterisk (*)${
+        censoredSwearWords.some((word) => s.toLowerCase().includes(word))
+          ? ', except for censored swear words'
+          : ''
+      }.`,
   },
   {
     id: 'no(',
@@ -236,6 +248,26 @@ const hardValidations: Array<Validation> = [
       ).some((count) => count > 3),
     msg: 'Password must not contain a question mark (?).',
   },
+  {
+    id: 'ascendingDigits',
+    fn: (s) =>
+      s
+        .split('')
+        .filter((w) => /[0-9]/.test(w))
+        .map((w) => parseInt(w, 10))
+        .every((num, index, arr) => num >= (arr[index - 1] || 0)),
+    msg: 'All digits in password must be in nondescending order.',
+  },
+  {
+    id: 'censoredSwearWords',
+    fn: (s) => !swearWords.some((word) => s.toLowerCase().includes(word)),
+    msg: 'Swear words in password must be censored (i.e. f**k).',
+  },
+  // {
+  //   id: 'emoji',
+  //   fn: (s) => EMOJI_REGEX.test(s),
+  //   msg: 'Password must include an emoji',
+  // },
 ];
 
 type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
@@ -247,3 +279,6 @@ const validations: Record<Difficulty, Array<Validation>> = {
 };
 
 export default validations;
+
+// TODO: add expert mode? password can't contain anthing you've already typed in
+// 34 budKc**pred699

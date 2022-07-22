@@ -590,3 +590,21 @@ export const dogNameWords = [
   'zoey ',
   'zoey',
 ];
+
+export const swearWords = [
+  'fuck',
+  'shit',
+  'damn',
+  'cunt',
+  'hell',
+  'piss',
+  'jizz',
+  'tits',
+  'twat',
+  'cock',
+  'dick',
+  'crap',
+  'arse',
+];
+
+export const censoredSwearWords = swearWords.map((w) => `${w[0]}**${w[3]}`);
