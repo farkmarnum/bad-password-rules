@@ -11,19 +11,26 @@
   height: 100vh;
 
   background-color: var(--background);
-  text-align: center;
+
+  color: var(--main);
 }
 
 h1 {
   color: var(--main);
   letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.main {
+  width: 800px;
+  max-width: calc(100% - 60px);
+  margin: 0 auto;
 }
 
 .password-input {
   font-size: 32px;
-
-  width: 750px;
-  max-width: calc(100% - 60px);
+  width: 100%;
+  margin-bottom: 16px;
 
   padding: 16px 12px;
 
@@ -33,5 +40,14 @@ h1 {
   background: var(--main);
   color: var(--background);
 
+  outline: none;
+}
+
+.text-btn {
+
+  padding: 8px 12px;
+
+  border-radius: 6px;
+  border: none;
   outline: none;
 }

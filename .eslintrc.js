@@ -7,6 +7,7 @@ module.exports = {
     'plugin:react/recommended',
     'airbnb',
     'airbnb-typescript',
+    'prettier'
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -31,6 +32,7 @@ module.exports = {
 
     'import/prefer-default-export': 'off',
     'react/function-component-definition': 'off',
-    'react/jsx-one-expression-per-line': 'off',
+    // 'react/jsx-one-expression-per-line': 'off',
+    // '@typescript-eslint/indent': 'off',
   },
 };
