@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import eyeOpened from '../assets/eye-opened.png';
-import eyeClosed from '../assets/eye-closed.png';
+import eyeOpened from '../../assets/eye-opened.png';
+import eyeClosed from '../../assets/eye-closed.png';
 import './PasswordInput.css';
+
+// TODO: handle pasted input
 
 const PasswordInput = ({
   setPassword: setPasswordParent,
