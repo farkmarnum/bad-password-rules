@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import './App.css';
 import PasswordInput from './components/PasswordInput';
 import allValidations from './helpers/validations';
@@ -6,6 +7,8 @@ import allValidations from './helpers/validations';
 const allValidationIds = allValidations.map(({ id }) => id);
 
 type Validations = Array<Validation>;
+
+const ERROR_LIST_ANIMATION_TIME_MS = 250;
 
 const runValidations = (password: string, validations: Validations) =>
   validations.map(({ fn, msg, id }) => ({
@@ -55,6 +58,13 @@ const App = () => {
     }
   }, [results, validations]);
 
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      '--error-list-animation-timeout',
+      `${ERROR_LIST_ANIMATION_TIME_MS}ms`,
+    );
+  });
+
   return (
     <div className="app">
       <header>
@@ -64,11 +74,19 @@ const App = () => {
         <PasswordInput setPassword={setPassword} />
 
         <div className="errors">
-          {results.map(({ id, msg, result }) => (
-            <div key={id}>
-              {result ? '✅' : '❌'} {msg}
-            </div>
-          ))}
+          <TransitionGroup>
+            {results.map(({ id, msg, result }) => (
+              <CSSTransition
+                key={id}
+                timeout={ERROR_LIST_ANIMATION_TIME_MS}
+                classNames="error-item"
+              >
+                <div className="error-item">
+                  {result ? '✅' : '❌'} {msg}
+                </div>
+              </CSSTransition>
+            ))}
+          </TransitionGroup>
         </div>
       </div>
     </div>
