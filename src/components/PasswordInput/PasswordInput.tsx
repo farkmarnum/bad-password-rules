@@ -1,9 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import eyeOpened from '../../assets/eye-opened.png';
 import eyeClosed from '../../assets/eye-closed.png';
 import './PasswordInput.css';
-
-// TODO: handle pasted input
 
 const PasswordInput = ({
   setPassword: setPasswordParent,
@@ -16,7 +14,7 @@ const PasswordInput = ({
     setPasswordParent(newValue);
   };
 
-  const ref = useRef<any>(null);
+  const ref = useRef<HTMLInputElement>(null);
 
   const [shouldShowPassword, setShouldShowPassword] = useState(false);
 
@@ -31,15 +29,18 @@ const PasswordInput = ({
     }
   };
 
-  const updatePassword = (newValue: string, newCursor: number) => {
-    setPassword(newValue);
+  const updatePassword = useCallback(
+    (newValue: string, newCursor: number) => {
+      setPassword(newValue);
 
-    const displayValue = shouldShowPassword
-      ? newValue
-      : '•'.repeat(newValue.length);
+      const displayValue = shouldShowPassword
+        ? newValue
+        : '•'.repeat(newValue.length);
 
-    updateInput(displayValue, newCursor);
-  };
+      updateInput(displayValue, newCursor);
+    },
+    [shouldShowPassword],
+  );
 
   useEffect(() => {
     const input = ref.current;
@@ -152,6 +153,48 @@ const PasswordInput = ({
         break;
     }
   };
+
+  const handlePasteEvent = useCallback(
+    (evt: ClipboardEvent) => {
+      console.log('HANDLE PASTE EVENT');
+      const { target } = evt;
+      if (!target) return;
+
+      const pasteContents = evt.clipboardData?.getData('text');
+      if (!pasteContents || pasteContents.length === 0) return;
+
+      evt.preventDefault();
+
+      const { selectionStart, selectionEnd } = target as HTMLInputElement;
+
+      const start = selectionStart || 0;
+      const end = selectionEnd || 0 + 1;
+
+      const newValue = [
+        password.current.slice(0, start),
+        pasteContents,
+        password.current.slice(end),
+      ].join('');
+
+      const newCursor = start + pasteContents.length;
+      updatePassword(newValue, newCursor);
+    },
+    [updatePassword],
+  );
+
+  useEffect(() => {
+    if (ref.current) {
+      ref.current.addEventListener('paste', handlePasteEvent);
+
+      return () => {
+        if (ref.current) {
+          ref.current.removeEventListener('paste', handlePasteEvent);
+        }
+      };
+    }
+
+    return () => {};
+  }, [ref, handlePasteEvent]);
 
   return (
     <div className="container">

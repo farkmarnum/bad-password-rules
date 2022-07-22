@@ -1,10 +1,26 @@
 import { useState, useEffect, useCallback } from 'react';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import PasswordInput from '../PasswordInput/PasswordInput';
-import allValidations from '../../helpers/validations';
+import allValidationsByDifficulty from '../../helpers/validations';
 import './BadPasswordRules.css';
 
-const allValidationIds = allValidations.map(({ id }) => id);
+const shuffle = <T,>(orig: Array<T>) => {
+  const arr = [...orig];
+
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+
+  return arr;
+};
+
+// Shuffle the validation list for the user, but keep it in order of easy -> hard.
+const allValidations = [
+  ...shuffle(allValidationsByDifficulty.EASY),
+  ...shuffle(allValidationsByDifficulty.MEDIUM),
+  ...shuffle(allValidationsByDifficulty.HARD),
+];
 
 type Validations = Array<Validation>;
 
@@ -24,26 +40,16 @@ const BadPasswordRules = () => {
 
   const addValidation = useCallback(() => {
     const usedValidationIds = new Set(validations.map(({ id }) => id));
-
-    const remainingIds = new Set(
-      allValidationIds.filter((id) => !usedValidationIds.has(id)),
+    const remainingValidations = allValidations.filter(
+      ({ id }) => !usedValidationIds.has(id),
     );
-    const remainingValidation = allValidations.filter(({ id }) =>
-      remainingIds.has(id),
-    );
-
-    const remainingResults = runValidations(password, remainingValidation);
-    const validationIdsThatWillCurrentlyFail = remainingResults
-      .filter(({ result }) => result === false)
-      .map(({ id }) => id);
-
-    const newValidationId =
-      validationIdsThatWillCurrentlyFail[
-        Math.floor(Math.random() * validationIdsThatWillCurrentlyFail.length)
-      ];
+    const failingValidationId = runValidations(
+      password,
+      remainingValidations,
+    ).find(({ result }) => !result)?.id;
 
     const newValidation = allValidations.find(
-      ({ id }) => id === newValidationId,
+      ({ id }) => id === failingValidationId,
     );
 
     if (newValidation) {
