@@ -61,7 +61,10 @@ const BadPasswordRules = () => {
   const results = runValidations(password, validations);
 
   useEffect(() => {
-    if (results.filter(({ result }) => result === false).length === 0) {
+    if (
+      results.filter(({ result }) => result === false).length === 0 &&
+      password.length > 0
+    ) {
       addValidation();
     }
   }, [results, validations]);
@@ -71,11 +74,12 @@ const BadPasswordRules = () => {
       'validation-item-animation-timeout',
       `${VALIDATION_ITEM_ANIMATION_TIME_MS}ms`,
     );
+
     document.documentElement.style.setProperty(
       'validation-indicator-animation-timeout',
       `${VALIDATION_INDICATOR_ANIMATION_TIME_MS}ms`,
     );
-  });
+  }, []);
 
   return (
     <div className="main">

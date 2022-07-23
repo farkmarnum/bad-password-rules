@@ -1,4 +1,3 @@
-// import emojiRegex from 'emoji-regex';
 import {
   dogNameWords,
   ickyWords,
@@ -6,9 +5,6 @@ import {
   censoredSwearWords,
   colorWords,
 } from './constants';
-
-// const EMOJI_REGEX = emojiRegex();
-// console.log(EMOJI_REGEX);
 
 const SPECIAL_CHARACTER = /[!@#$%^&*()[\]{},.<>/?;:'"]/;
 
@@ -263,11 +259,6 @@ const hardValidations: Array<Validation> = [
     fn: (s) => !swearWords.some((word) => s.toLowerCase().includes(word)),
     msg: 'Swear words in password must be censored (i.e. f**k).',
   },
-  // {
-  //   id: 'emoji',
-  //   fn: (s) => EMOJI_REGEX.test(s),
-  //   msg: 'Password must include an emoji',
-  // },
 ];
 
 type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
@@ -280,5 +271,4 @@ const validations: Record<Difficulty, Array<Validation>> = {
 
 export default validations;
 
-// TODO: add expert mode? password can't contain anthing you've already typed in
-// 34 budKc**pred699
+// TODO: add expert mode? password can't contain anything you've already typed in
