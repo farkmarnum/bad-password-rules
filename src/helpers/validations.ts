@@ -50,7 +50,7 @@ const mediumValidations: Array<Validation> = [
   {
     id: 'dog',
     fn: (s) => dogNameWords.some((word) => s.toLowerCase().includes(word)),
-    msg: 'Password must contain a dog name.',
+    msg: 'Password must contain a common dog name.',
   },
   {
     id: 'swearWords',
