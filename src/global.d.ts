@@ -5,3 +5,6 @@ interface Validation {
 }
 
 type ValidationsGenerator = (seed: number) => Array<Validation>;
+
+type BadPasswordRulesRefContents = { reset: () => void } | undefined;
+type BadPasswordRulesRef = React.MutableRefObject<BadPasswordRulesRefContents>;

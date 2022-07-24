@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import PasswordInput from '../PasswordInput/PasswordInput';
 import { generateValidations } from '../../helpers/validations';
@@ -19,10 +19,22 @@ const runValidations = (password: string, validations: Validations) =>
 
 const generateSeed = () => Math.round(Math.random() * 9999);
 
-const BadPasswordRules = () => {
-  const [seed, setSeed] = useState(generateSeed);
+const BadPasswordRules = ({ api }: { api: BadPasswordRulesRef }) => {
+  const [seed, setSeed] = useState(generateSeed());
   const [password, setPassword] = useState('');
+
   const [validationIds, setValidationIds] = useState<Array<string>>([]);
+
+  const reset = useCallback(() => {
+    setPassword('');
+    setValidationIds([]);
+    setSeed(generateSeed());
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line no-param-reassign
+    api.current = { reset };
+  }, [reset, api]);
 
   const allValidations = generateValidations(seed);
 
@@ -73,7 +85,7 @@ const BadPasswordRules = () => {
 
   return (
     <div className="main">
-      <PasswordInput setPassword={setPassword} />
+      <PasswordInput password={password} setPassword={setPassword} />
 
       <div className="errors">
         <TransitionGroup>

@@ -1,13 +1,14 @@
 :root {
   --background: #1A1D1A;
-  --main: #d1e1ef;
+  --main: #ffffff;
 }
 
 h1 {
   color: var(--main);
   letter-spacing: 0.5px;
-  text-align: center;
+  text-align: left;
   font-size: 24px;
+  margin: 24px 0 24px 15px;
 }
 
 @media (min-width: 576px) {
@@ -30,4 +31,62 @@ h1 {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.top-right-buttons {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+
+  padding: 24px 8px;
+}
+
+.reset-btn, .info-btn {
+  background: 0;
+
+  border: 0;
+  outline: 0;
+  margin: 0;
+
+  cursor: pointer;
+
+  padding: 2px;
+  width: 28px;
+}
+
+.reset-btn img,
+.info-btn img {
+  width: 100%;
+  filter: invert(1);
+}
+
+.reset-btn img {
+  padding: 3px;
+}
+
+@media (min-width: 420px) {
+  h1 {
+    margin: 24px 0;
+    text-align: center;
+  }
+
+  .top-right-buttons {
+    padding: 24px 13px;
+  }
+}
+
+@media (min-width: 576px) {
+  .reset-btn, .info-btn {
+    width: 40px;
+  }
+}
+@media (min-width: 768px) {
+  .top-right-buttons {
+    padding: 24px;
+  }
+
+  .reset-btn, .info-btn {
+    margin: 0 6px;
+  }
 }

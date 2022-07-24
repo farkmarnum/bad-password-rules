@@ -4,8 +4,10 @@ import eyeClosed from '../../assets/eye-closed.png';
 import './PasswordInput.css';
 
 const PasswordInput = ({
+  password,
   setPassword,
 }: {
+  password: string;
   setPassword: (arg0: string) => void;
 }) => {
   const [shouldShowPassword, setShouldShowPassword] = useState(true);
@@ -18,6 +20,7 @@ const PasswordInput = ({
         id="password-id"
         onChange={(evt) => setPassword(evt.target?.value || '')}
         placeholder="Type a password..."
+        value={password}
       />
       <button
         className="toggle-visibility-btn"
