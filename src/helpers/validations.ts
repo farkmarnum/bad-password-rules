@@ -42,13 +42,10 @@ const easyValidations: ValidationsGenerator = (seed) => {
     },
     {
       id: 'specialCharacter',
-      fn: (s) => {
-        console.log(SPECIAL_CHARACTER, removeCensoredSwearWords(s));
-        return SPECIAL_CHARACTER.test(removeCensoredSwearWords(s));
-      },
+      fn: (s) => SPECIAL_CHARACTER.test(removeCensoredSwearWords(s)),
       msg: (s) =>
         `Password must contain a special character${
-          censoredSwearWords.some((word) => s.toLowerCase().includes(word))
+          removeCensoredSwearWords(s).length !== s.length
             ? " — asterisks for censoring don't count"
             : ''
         }.`,
@@ -142,7 +139,7 @@ const hardValidations: ValidationsGenerator = (seed) => {
       fn: (s) => !removeCensoredSwearWords(s).includes('*'),
       msg: (s) =>
         `Password must not contain an asterisk (*)${
-          censoredSwearWords.some((word) => s.toLowerCase().includes(word))
+          removeCensoredSwearWords(s).length !== s.length
             ? ', except for censored swear words'
             : ''
         }.`,
