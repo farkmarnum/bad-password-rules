@@ -18,13 +18,16 @@ const InfoButton = ({ openModal }: { openModal: () => void }) => (
 
 const App = () => {
   const api = useRef<BadPasswordRulesRefContents>();
+
   const reset = () => {
     if (api.current?.reset) {
       api.current.reset();
     }
   };
 
-  (window as Record<string, any>).a = () => console.log(api.current);
+  const openModal = () => {
+    window.open('https://github.com/farkmarnum/bad-password-rules', '_blank');
+  };
 
   useEffect(() => {
     const inputElement = document.querySelector('#password-id');
@@ -39,7 +42,7 @@ const App = () => {
         <h1>Bad Password Rules</h1>
         <div className="top-right-buttons">
           <ResetButton reset={reset} />
-          <InfoButton openModal={() => {}} />
+          <InfoButton openModal={openModal} />
         </div>
       </header>
       <BadPasswordRules api={api} />
