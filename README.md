@@ -1,3 +1,3 @@
 # Bad Password Rules
 
-They just keep getting worse.
+Some websites have terrible password requirements. This website has the worst.
