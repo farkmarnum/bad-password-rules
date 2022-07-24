@@ -4,39 +4,56 @@ import {
   swearWords,
   censoredSwearWords,
   colorWords,
-} from './constants';
+} from './wordLists';
+import { specialCharacterInfo, SPECIAL_CHARACTER } from './characters';
 
-const SPECIAL_CHARACTER = /[!@#$%^&*()[\]{},.<>/?;:'"]/;
+const removeCensoredSwearWords = (s: string) =>
+  censoredSwearWords.reduce((acc, w) => {
+    const globalRegexOfWord = RegExp(w.replace(/\*/g, '\\*'), 'g');
+    return acc.replace(globalRegexOfWord, '');
+  }, s.toLowerCase());
 
-const easyValidations: Array<Validation> = [
-  {
-    id: 'moreThan8',
-    fn: (s) => s.length > 8,
-    msg: 'Password must have more than 8 characters.',
-  },
-  {
-    id: 'number',
-    fn: (s) => /[0-9]/.test(s),
-    msg: 'Password must contain a number.',
-  },
-  {
-    id: 'uppercaseLetter',
-    fn: (s) => /[A-Z]/.test(s),
-    msg: 'Password must contain an uppercase letter.',
-  },
-  {
-    id: 'lowercaseLetter',
-    fn: (s) => /[a-z]/.test(s),
-    msg: 'Password must contain a lowercase letter.',
-  },
-  {
-    id: 'specialCharacter',
-    fn: (s) => SPECIAL_CHARACTER.test(s),
-    msg: 'Password must contain a special character.',
-  },
-];
+const easyValidations: ValidationsGenerator = (seed) => {
+  const minLength = 4 + (seed % 4);
 
-const mediumValidations: Array<Validation> = [
+  return [
+    {
+      id: 'minimumLength',
+      fn: (s) => s.length >= minLength,
+      msg: `Password must have at least ${minLength} characters.`,
+    },
+    {
+      id: 'number',
+      fn: (s) => /[0-9]/.test(s),
+      msg: 'Password must contain a number.',
+    },
+    {
+      id: 'uppercaseLetter',
+      fn: (s) => /[A-Z]/.test(s),
+      msg: 'Password must contain an uppercase letter.',
+    },
+    {
+      id: 'lowercaseLetter',
+      fn: (s) => /[a-z]/.test(s),
+      msg: 'Password must contain a lowercase letter.',
+    },
+    {
+      id: 'specialCharacter',
+      fn: (s) => {
+        console.log(SPECIAL_CHARACTER, removeCensoredSwearWords(s));
+        return SPECIAL_CHARACTER.test(removeCensoredSwearWords(s));
+      },
+      msg: (s) =>
+        `Password must contain a special character${
+          censoredSwearWords.some((word) => s.toLowerCase().includes(word))
+            ? " — asterisks for censoring don't count"
+            : ''
+        }.`,
+    },
+  ];
+};
+
+const mediumValidations: ValidationsGenerator = () => [
   {
     id: 'repeatedCharacters',
     fn: (s) => !/(.)\1\1/.test(s),
@@ -62,213 +79,132 @@ const mediumValidations: Array<Validation> = [
   },
 ];
 
-const hardValidations: Array<Validation> = [
-  {
-    id: 'oddLength',
-    fn: (s) => s.length % 2 !== 0,
-    msg: 'Password must have an odd number of characters.',
-  },
-  {
-    id: 'noIcky',
-    fn: (s) => !ickyWords.some((word) => s.includes(word)),
-    msg: 'Password must not contain any icky words.',
-  },
-  {
-    id: 'atMost20Characters',
-    fn: (s) => s.length <= 20,
-    msg: 'Password must have at most 20 characters.',
-  },
-  {
-    id: 'multipleOf17',
-    fn: (s) =>
-      s
-        .split(/(\d+)/)
-        .filter((w) => /\d/.test(w))
-        .map((w) => parseInt(w, 10))
-        .some((num) => num % 17 === 0),
-    msg: 'Password must include a number that is divisible by 17.',
-  },
-  {
-    id: 'digitsSumToMultipleOf31',
-    fn: (s) => {
-      const digitSum = s
-        .split(/(\d)/)
-        .filter((w) => /\d/.test(w))
-        .map((w) => parseInt(w, 10))
-        .reduce((acc, n) => acc + n, 0);
-      return digitSum % 31 === 0;
+const hardValidations: ValidationsGenerator = (seed) => {
+  const maxLength = 18 + (seed % 8);
+  const parity = seed % 2;
+  const divisorA = 10 + (seed % 10);
+  const divisorB = 20 + (seed % 10);
+
+  const specialCharsIndex = seed % specialCharacterInfo.length;
+  const specialCharactersExceptOne = specialCharacterInfo
+    .slice(0, specialCharsIndex)
+    .concat(specialCharacterInfo.slice(specialCharsIndex + 1));
+
+  const specialCharacterRules = specialCharactersExceptOne.map(
+    ({ char, name }) => ({
+      id: `no${char}`,
+      fn: (s: string) => !s.includes(char),
+      msg: `Password must not contain a ${name} (${char}).`,
+    }),
+  );
+
+  const orderParity = seed % 6 > 2;
+  const numberComparer = (a: number, b: number): boolean =>
+    orderParity ? a >= b : a <= b;
+  const orderName = orderParity ? 'ascending' : 'descending';
+
+  return [
+    ...specialCharacterRules,
+    {
+      id: 'lengthParity',
+      fn: (s) => s.length % 2 === parity,
+      msg: `Password must have an ${
+        parity ? 'odd' : 'even'
+      } number of characters.`,
     },
-    msg: 'All the digits in the password must add up to a multiple of 31.',
-  },
-  {
-    id: 'no!',
-    fn: (s) => !s.includes('!'),
-    msg: 'Password must not contain an exclamation point (!).',
-  },
-  {
-    id: 'no@',
-    fn: (s) => !s.includes('@'),
-    msg: 'Password must not contain an at sign (@).',
-  },
-  {
-    id: 'no#',
-    fn: (s) => !s.includes('#'),
-    msg: 'Password must not contain a pound sign (#).',
-  },
-  {
-    id: 'no$',
-    fn: (s) => !s.includes('$'),
-    msg: 'Password must not contain a dollar sign ($).',
-  },
-  {
-    id: 'no%',
-    fn: (s) => !s.includes('%'),
-    msg: 'Password must not contain a percent sign (%).',
-  },
-  {
-    id: 'no^',
-    fn: (s) => !s.includes('^'),
-    msg: 'Password must not contain a caret (^).',
-  },
-  {
-    id: 'no&',
-    fn: (s) => !s.includes('&'),
-    msg: 'Password must not contain an ampersand (&).',
-  },
-  {
-    id: 'no*',
-    // Handle censored swear word case:
-    fn: (s) =>
-      !s.includes('*') ||
-      censoredSwearWords.some((word) => s.toLowerCase().includes(word)),
-    msg: (s) =>
-      `Password must not contain an asterisk (*)${
-        censoredSwearWords.some((word) => s.toLowerCase().includes(word))
-          ? ', except for censored swear words'
-          : ''
-      }.`,
-  },
-  {
-    id: 'no(',
-    fn: (s) => !s.includes('('),
-    msg: 'Password must not contain a left parenthesis (().',
-  },
-  {
-    id: 'no-',
-    fn: (s) => !s.includes('-'),
-    msg: 'Password must not contain a hyphen (-).',
-  },
-  {
-    id: 'no_',
-    fn: (s) => !s.includes('_'),
-    msg: 'Password must not contain an underscore (_).',
-  },
-  {
-    id: 'no+',
-    fn: (s) => !s.includes('+'),
-    msg: 'Password must not contain a plus sign (+).',
-  },
-  {
-    id: 'no=',
-    fn: (s) => !s.includes('='),
-    msg: 'Password must not contain an equals sign  (=).',
-  },
-  {
-    id: 'no:',
-    fn: (s) => !s.includes(':'),
-    msg: 'Password must not contain a colon (:).',
-  },
-  {
-    id: 'no;',
-    fn: (s) => !s.includes(';'),
-    msg: 'Password must not contain a semicolon (;).',
-  },
-  {
-    id: 'noSingleQuote',
-    fn: (s) => !s.includes("'"),
-    msg: "Password must not contain a single quote (').",
-  },
-  {
-    id: 'no"',
-    fn: (s) => !s.includes('"'),
-    msg: 'Password must not contain a double quote (").',
-  },
-  {
-    id: 'no,',
-    fn: (s) => !s.includes(','),
-    msg: 'Password must not contain a comma (,).',
-  },
-  {
-    id: 'no.',
-    fn: (s) => !s.includes('.'),
-    msg: 'Password must not contain a period (.).',
-  },
-  {
-    id: 'no<',
-    fn: (s) => !s.includes('<'),
-    msg: 'Password must not contain a less-than sign (<).',
-  },
-  {
-    id: 'no>',
-    fn: (s) => !s.includes('>'),
-    msg: 'Password must not contain a greater-than sign (>).',
-  },
-  {
-    id: 'no/',
-    fn: (s) => !s.includes('/'),
-    msg: 'Password must not contain a forward slash (/).',
-  },
-  {
-    id: 'noBackSlash',
-    fn: (s) => !s.includes('\\'),
-    msg: 'Password must not contain a backslash ().',
-  },
-  {
-    id: 'no|',
-    fn: (s) => !s.includes('|'),
-    msg: 'Password must not contain a vertical bar (|).',
-  },
-  {
-    id: 'no?',
-    fn: (s) => !s.includes('?'),
-    msg: 'Password must not contain a question mark (?).',
-  },
-  {
-    id: 'noMoreThan3ofAnyCharacter',
-    fn: (s) =>
-      !Object.values(
-        s.split('').reduce((acc, char) => {
-          acc[char] = acc[char] || 0 + 1;
-          return acc;
-        }, {} as Record<string, number>),
-      ).some((count) => count > 3),
-    msg: 'Password must not contain a question mark (?).',
-  },
-  {
-    id: 'ascendingDigits',
-    fn: (s) =>
-      s
-        .split('')
-        .filter((w) => /[0-9]/.test(w))
-        .map((w) => parseInt(w, 10))
-        .every((num, index, arr) => num >= (arr[index - 1] || 0)),
-    msg: 'All digits in password must be in nondescending order.',
-  },
-  {
-    id: 'censoredSwearWords',
-    fn: (s) => !swearWords.some((word) => s.toLowerCase().includes(word)),
-    msg: 'Swear words in password must be censored (i.e. f**k).',
-  },
-];
-
-type Difficulty = 'EASY' | 'MEDIUM' | 'HARD';
-
-const validations: Record<Difficulty, Array<Validation>> = {
-  EASY: easyValidations,
-  MEDIUM: mediumValidations,
-  HARD: hardValidations,
+    {
+      id: 'noIcky',
+      fn: (s) => !ickyWords.some((word) => s.includes(word)),
+      msg: 'Password must not contain any icky words.',
+    },
+    {
+      id: 'maxLength',
+      fn: (s) => s.length <= maxLength,
+      msg: `Password must have at most ${maxLength} characters.`,
+    },
+    {
+      id: 'includeMultipleOfDivisorA',
+      fn: (s) =>
+        s
+          .split(/(\d+)/)
+          .filter((w) => /\d/.test(w))
+          .map((w) => parseInt(w, 10))
+          .some((num) => num % divisorA === 0),
+      msg: `Password must include a number that is divisible by ${divisorA}.`,
+    },
+    {
+      id: 'digitsSumToDivisorB',
+      fn: (s) => {
+        const digitSum = s
+          .split(/(\d)/)
+          .filter((w) => /\d/.test(w))
+          .map((w) => parseInt(w, 10))
+          .reduce((acc, n) => acc + n, 0);
+        return digitSum % divisorB === 0;
+      },
+      msg: `All the individual digits in the password must add up to a multiple of ${divisorB}.`,
+    },
+    {
+      id: 'no*',
+      // Handle censored swear word case:
+      fn: (s) => !removeCensoredSwearWords(s).includes('*'),
+      msg: (s) =>
+        `Password must not contain an asterisk (*)${
+          censoredSwearWords.some((word) => s.toLowerCase().includes(word))
+            ? ', except for censored swear words'
+            : ''
+        }.`,
+    },
+    {
+      id: 'atMost3OfAnyCharacter',
+      fn: (s) =>
+        !Object.values(
+          s.split('').reduce((acc, char) => {
+            acc[char] = acc[char] || 0 + 1;
+            return acc;
+          }, {} as Record<string, number>),
+        ).some((count) => count > 3),
+      msg: 'Password must not contain at most 3 of any character.',
+    },
+    {
+      id: 'digitOrder',
+      fn: (s) => {
+        const a = s
+          .split('')
+          .filter((w) => /[0-9]/.test(w))
+          .map((w) => parseInt(w, 10))
+          .every((num, index, arr) => {
+            const fallback = orderParity ? 0 : Infinity;
+            return numberComparer(num, arr[index - 1] ?? fallback);
+          });
+        return a;
+      },
+      msg: `All digits in password must be in ${orderName} order.`,
+    },
+    {
+      id: 'censoredSwearWords',
+      fn: (s) => !swearWords.some((word) => s.toLowerCase().includes(word)),
+      msg: 'Swear words in password must be censored (i.e. f**k).',
+    },
+  ];
 };
 
-export default validations;
+const shuffle = <T>(orig: Array<T>) => {
+  const arr = [...orig];
 
-// TODO: add expert mode? password can't contain anything you've already typed in
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+
+  return arr;
+};
+
+export const generateValidations = (seed: number): Array<Validation> => {
+  const EASY = easyValidations(seed);
+  const MEDIUM = mediumValidations(seed);
+  const HARD = hardValidations(seed);
+
+  // Shuffle the validation list for the user, but keep it in order of easy -> hard.
+  return [...shuffle(EASY), ...shuffle(MEDIUM), ...shuffle(HARD)];
+};

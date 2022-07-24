@@ -1,26 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { TransitionGroup, CSSTransition } from 'react-transition-group';
 import PasswordInput from '../PasswordInput/PasswordInput';
-import allValidationsByDifficulty from '../../helpers/validations';
+import { generateValidations } from '../../helpers/validations';
 import './BadPasswordRules.css';
-
-const shuffle = <T,>(orig: Array<T>) => {
-  const arr = [...orig];
-
-  for (let i = arr.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-
-  return arr;
-};
-
-// Shuffle the validation list for the user, but keep it in order of easy -> hard.
-const allValidations = [
-  ...shuffle(allValidationsByDifficulty.EASY),
-  ...shuffle(allValidationsByDifficulty.MEDIUM),
-  ...shuffle(allValidationsByDifficulty.HARD),
-];
 
 type Validations = Array<Validation>;
 
@@ -35,9 +17,14 @@ const runValidations = (password: string, validations: Validations) =>
     inputValue: password,
   }));
 
+const generateSeed = () => Math.round(Math.random() * 9999);
+
 const BadPasswordRules = () => {
+  const [seed, setSeed] = useState(generateSeed);
   const [password, setPassword] = useState('');
   const [validations, setValidations] = useState<Validations>([]);
+
+  const allValidations = generateValidations(seed);
 
   const addValidation = useCallback(() => {
     const usedValidationIds = new Set(validations.map(({ id }) => id));
@@ -87,7 +74,7 @@ const BadPasswordRules = () => {
 
       <div className="errors">
         <TransitionGroup>
-          {results.map(({ id, msg, result, inputValue }) => (
+          {results.reverse().map(({ id, msg, result, inputValue }) => (
             <CSSTransition
               key={id}
               timeout={VALIDATION_ITEM_ANIMATION_TIME_MS}
