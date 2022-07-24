@@ -22,28 +22,27 @@ const generateSeed = () => Math.round(Math.random() * 9999);
 const BadPasswordRules = () => {
   const [seed, setSeed] = useState(generateSeed);
   const [password, setPassword] = useState('');
-  const [validations, setValidations] = useState<Validations>([]);
+  const [validationIds, setValidationIds] = useState<Array<string>>([]);
 
   const allValidations = generateValidations(seed);
 
+  const validations = allValidations.filter(({ id }) =>
+    validationIds.includes(id),
+  );
+
   const addValidation = useCallback(() => {
-    const usedValidationIds = new Set(validations.map(({ id }) => id));
     const remainingValidations = allValidations.filter(
-      ({ id }) => !usedValidationIds.has(id),
-    );
-    const failingValidationId = runValidations(
-      password,
-      remainingValidations,
-    ).find(({ result }) => !result)?.id;
-
-    const newValidation = allValidations.find(
-      ({ id }) => id === failingValidationId,
+      ({ id }) => !validationIds.includes(id),
     );
 
-    if (newValidation) {
-      setValidations(validations.concat(newValidation));
+    const newValidationId = runValidations(password, remainingValidations).find(
+      ({ result }) => !result,
+    )?.id;
+
+    if (newValidationId) {
+      setValidationIds(validationIds.concat(newValidationId));
     }
-  }, [password, validations]);
+  }, [password, validationIds]);
 
   const results = runValidations(password, validations);
 
