@@ -80,7 +80,7 @@ const mediumValidations: ValidationsGenerator = () => [
 ];
 
 const hardValidations: ValidationsGenerator = (seed) => {
-  const maxLength = 18 + (seed % 8);
+  const maxLength = 15 + (seed % 6);
   const parity = seed % 2;
   const divisorA = 10 + (seed % 10);
   const divisorB = 20 + (seed % 10);
@@ -164,7 +164,7 @@ const hardValidations: ValidationsGenerator = (seed) => {
   ];
 };
 
-const impossible: ValidationsGenerator = (seed) => [
+const reallyHardValidations: ValidationsGenerator = (seed) => [
   ...generateSpecialCharactersRules(seed),
   {
     id: 'no*',
@@ -194,13 +194,13 @@ export const generateValidations = (seed: number): Array<Validation> => {
   const EASY = easyValidations(seed);
   const MEDIUM = mediumValidations(seed);
   const HARD = hardValidations(seed);
-  const IMPOSSIBLE = impossible(seed);
+  const REALLY_HARD = reallyHardValidations(seed);
 
   // Shuffle the validation list for the user, but keep it in order of easy -> hard.
   return [
     ...shuffle(EASY),
     ...shuffle(MEDIUM),
     ...shuffle(HARD),
-    ...shuffle(IMPOSSIBLE),
+    ...shuffle(REALLY_HARD),
   ];
 };
