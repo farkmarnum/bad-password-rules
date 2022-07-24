@@ -50,7 +50,7 @@ export const generateSpecialCharactersRules = (seed: number) => {
   const index = seed % withoutAsterisk.length;
   const withOneRemoved = withoutAsterisk
     .slice(0, index)
-    .concat(specialCharacterInfo.slice(index + 1));
+    .concat(withoutAsterisk.slice(index + 1));
 
   return withOneRemoved.map(({ char, name }) => ({
     id: `no${char}`,
