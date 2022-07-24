@@ -90,10 +90,7 @@ const hardValidations: ValidationsGenerator = (seed) => {
     orderParity ? a >= b : a <= b;
   const orderName = orderParity ? 'ascending' : 'descending';
 
-  const specialCharacterRules = generateSpecialCharactersRules(seed);
-
   return [
-    ...specialCharacterRules,
     {
       id: 'lengthParity',
       fn: (s) => s.length % 2 === parity,
@@ -134,17 +131,6 @@ const hardValidations: ValidationsGenerator = (seed) => {
       msg: `All the individual digits in the password must add up to a multiple of ${divisorB}.`,
     },
     {
-      id: 'no*',
-      // Handle censored swear word case:
-      fn: (s) => !removeCensoredSwearWords(s).includes('*'),
-      msg: (s) =>
-        `Password must not contain an asterisk (*)${
-          removeCensoredSwearWords(s).length !== s.length
-            ? ', except for censored swear words'
-            : ''
-        }.`,
-    },
-    {
       id: 'atMost3OfAnyCharacter',
       fn: (s) =>
         !Object.values(
@@ -178,6 +164,21 @@ const hardValidations: ValidationsGenerator = (seed) => {
   ];
 };
 
+const impossible: ValidationsGenerator = (seed) => [
+  ...generateSpecialCharactersRules(seed),
+  {
+    id: 'no*',
+    // Handle censored swear word case:
+    fn: (s) => !removeCensoredSwearWords(s).includes('*'),
+    msg: (s) =>
+      `Password must not contain an asterisk (*)${
+        removeCensoredSwearWords(s).length !== s.length
+          ? ', except for censored swear words'
+          : ''
+      }.`,
+  },
+];
+
 const shuffle = <T>(orig: Array<T>) => {
   const arr = [...orig];
 
@@ -193,7 +194,13 @@ export const generateValidations = (seed: number): Array<Validation> => {
   const EASY = easyValidations(seed);
   const MEDIUM = mediumValidations(seed);
   const HARD = hardValidations(seed);
+  const IMPOSSIBLE = impossible(seed);
 
   // Shuffle the validation list for the user, but keep it in order of easy -> hard.
-  return [...shuffle(EASY), ...shuffle(MEDIUM), ...shuffle(HARD)];
+  return [
+    ...shuffle(EASY),
+    ...shuffle(MEDIUM),
+    ...shuffle(HARD),
+    ...shuffle(IMPOSSIBLE),
+  ];
 };
