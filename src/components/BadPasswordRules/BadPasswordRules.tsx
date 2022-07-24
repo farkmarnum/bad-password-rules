@@ -68,13 +68,17 @@ const BadPasswordRules = () => {
     );
   }, []);
 
+  const sortedResults = results
+    .filter(({ result }) => !result)
+    .concat(results.filter(({ result }) => result));
+
   return (
     <div className="main">
       <PasswordInput setPassword={setPassword} />
 
       <div className="errors">
         <TransitionGroup>
-          {results.reverse().map(({ id, msg, result, inputValue }) => (
+          {sortedResults.map(({ id, msg, result, inputValue }) => (
             <CSSTransition
               key={id}
               timeout={VALIDATION_ITEM_ANIMATION_TIME_MS}
