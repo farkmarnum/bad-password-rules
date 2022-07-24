@@ -5,7 +5,10 @@ import {
   censoredSwearWords,
   colorWords,
 } from './wordLists';
-import { specialCharacterInfo, SPECIAL_CHARACTER } from './characters';
+import {
+  generateSpecialCharactersRules,
+  SPECIAL_CHARACTER,
+} from './characters';
 
 const removeCensoredSwearWords = (s: string) =>
   censoredSwearWords.reduce((acc, w) => {
@@ -85,23 +88,12 @@ const hardValidations: ValidationsGenerator = (seed) => {
   const divisorA = 10 + (seed % 10);
   const divisorB = 20 + (seed % 10);
 
-  const specialCharsIndex = seed % specialCharacterInfo.length;
-  const specialCharactersExceptOne = specialCharacterInfo
-    .slice(0, specialCharsIndex)
-    .concat(specialCharacterInfo.slice(specialCharsIndex + 1));
-
-  const specialCharacterRules = specialCharactersExceptOne.map(
-    ({ char, name }) => ({
-      id: `no${char}`,
-      fn: (s: string) => !s.includes(char),
-      msg: `Password must not contain a ${name} (${char}).`,
-    }),
-  );
-
   const orderParity = seed % 6 > 2;
   const numberComparer = (a: number, b: number): boolean =>
     orderParity ? a >= b : a <= b;
   const orderName = orderParity ? 'ascending' : 'descending';
+
+  const specialCharacterRules = generateSpecialCharactersRules(seed);
 
   return [
     ...specialCharacterRules,

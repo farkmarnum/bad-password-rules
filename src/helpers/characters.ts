@@ -40,3 +40,21 @@ const allSpecialCharacters = specialCharacterInfo
 export const SPECIAL_CHARACTER = new RegExp(
   `[${allSpecialCharacters.replace(/([\]\\-])/g, '\\$1')}]`,
 );
+
+export const generateSpecialCharactersRules = (seed: number) => {
+  // Handle asterisk separately because of censoring rule
+  const withoutAsterisk = specialCharacterInfo.filter(
+    ({ char }) => char !== '*',
+  );
+
+  const index = seed % withoutAsterisk.length;
+  const withOneRemoved = withoutAsterisk
+    .slice(0, index)
+    .concat(specialCharacterInfo.slice(index + 1));
+
+  return withOneRemoved.map(({ char, name }) => ({
+    id: `no${char}`,
+    fn: (s: string) => !s.includes(char),
+    msg: `Password must not contain a ${name} (${char}).`,
+  }));
+};
