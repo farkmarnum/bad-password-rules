@@ -32,15 +32,27 @@ const BadPasswordRules = ({ api }: { api: BadPasswordRulesRef }) => {
   }, []);
 
   useEffect(() => {
+    document.documentElement.style.setProperty(
+      'validation-item-animation-timeout',
+      `${VALIDATION_ITEM_ANIMATION_TIME_MS}ms`,
+    );
+
+    document.documentElement.style.setProperty(
+      'validation-indicator-animation-timeout',
+      `${VALIDATION_INDICATOR_ANIMATION_TIME_MS}ms`,
+    );
+  }, []);
+
+  useEffect(() => {
     // eslint-disable-next-line no-param-reassign
     api.current = { reset };
   }, [reset, api]);
 
   const allValidations = generateValidations(seed);
 
-  const validations = allValidations.filter(({ id }) =>
-    validationIds.includes(id),
-  );
+  const validations = validationIds
+    .map((id) => allValidations.find(({ id: idInner }) => idInner === id))
+    .filter((x) => x) as Array<Validation>;
 
   const addValidation = useCallback(() => {
     const remainingValidations = allValidations.filter(
@@ -52,7 +64,7 @@ const BadPasswordRules = ({ api }: { api: BadPasswordRulesRef }) => {
     )?.id;
 
     if (newValidationId) {
-      setValidationIds(validationIds.concat(newValidationId));
+      setValidationIds([newValidationId].concat(...validationIds));
     }
   }, [password, validationIds]);
 
@@ -67,21 +79,16 @@ const BadPasswordRules = ({ api }: { api: BadPasswordRulesRef }) => {
     }
   }, [results, validations]);
 
+  // Re-order validations & results so that errors are at the top
   useEffect(() => {
-    document.documentElement.style.setProperty(
-      'validation-item-animation-timeout',
-      `${VALIDATION_ITEM_ANIMATION_TIME_MS}ms`,
-    );
+    const sortedResults = results
+      .filter(({ result }) => !result)
+      .concat(results.filter(({ result }) => result));
 
-    document.documentElement.style.setProperty(
-      'validation-indicator-animation-timeout',
-      `${VALIDATION_INDICATOR_ANIMATION_TIME_MS}ms`,
-    );
-  }, []);
-
-  const sortedResults = results
-    .filter(({ result }) => !result)
-    .concat(results.filter(({ result }) => result));
+    if (!validationIds.every((id, i) => id === sortedResults[i].id)) {
+      setValidationIds(sortedResults.map(({ id }) => id));
+    }
+  }, [validationIds, results]);
 
   return (
     <div className="main">
@@ -89,7 +96,7 @@ const BadPasswordRules = ({ api }: { api: BadPasswordRulesRef }) => {
 
       <div className="errors">
         <TransitionGroup>
-          {sortedResults.map(({ id, msg, result, inputValue }) => (
+          {results.map(({ id, msg, result, inputValue }) => (
             <CSSTransition
               key={id}
               timeout={VALIDATION_ITEM_ANIMATION_TIME_MS}
