@@ -12,8 +12,13 @@ yarn start
 ```
 
 
-# In production
+# Production
 
-https://badpasswordrules.com
+[badpasswordrules.com](https://badpasswordrules.com)
 
-<img width="500" alt="Screen Shot 2022-07-25 at 12 38 19 AM" src="https://user-images.githubusercontent.com/46835237/180699898-3f0ccab8-06cd-4181-b8d1-9a7c7f39b51e.png">
+React app hosted on S3 -> CloudFront -> Route53, provisioned by Terraform.
+
+
+# Hall of Shame
+
+[duffn/dumb-password-rules](https://github.com/duffn/dumb-password-rules)
