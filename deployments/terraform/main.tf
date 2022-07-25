@@ -12,9 +12,11 @@ module "cdn" {
   source  = "cloudposse/cloudfront-s3-cdn/aws"
   version = "0.82.4"
 
-  name                = "${var.organization}-${var.domain}"
-  aliases             = [var.domain]
-  dns_alias_enabled   = true
+  name                        = "${var.organization}-${var.domain}"
+  aliases                     = [var.domain]
+  dns_alias_enabled           = true
+  website_enabled             = true
+  s3_website_password_enabled = true
 
   acm_certificate_arn = module.acm_request_certificate.arn
   depends_on          = [module.acm_request_certificate]
