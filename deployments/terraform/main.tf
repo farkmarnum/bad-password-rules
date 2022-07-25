@@ -24,6 +24,7 @@ module "cdn" {
 
   website_enabled             = true
   s3_website_password_enabled = true
+  allow_ssl_requests_only     = false
 
   acm_certificate_arn = module.acm_request_certificate.arn
   depends_on          = [module.acm_request_certificate]
