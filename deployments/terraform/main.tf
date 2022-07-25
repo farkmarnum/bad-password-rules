@@ -37,7 +37,7 @@ resource "null_resource" "build_and_upload" {
       yarn install
       yarn build
 
-      aws s3 sync ./build s3://$S3_BUCKET --delete
+      aws s3 sync ./build s3://$S3_BUCKET --delete --acl public-read
       aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION --paths "/*"
     EOF
 
