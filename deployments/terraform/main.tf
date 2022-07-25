@@ -20,7 +20,7 @@ module "cdn" {
   depends_on          = [module.acm_request_certificate]
 }
 
-resource "null_resource" "trigger-deployment" {
+resource "null_resource" "trigger_deployment" {
   provisioner "local-exec" {
     command = <<-EOF
       yarn install
@@ -37,5 +37,21 @@ resource "null_resource" "trigger-deployment" {
 
   triggers = {
     always_run = "${timestamp()}"
+  }
+}
+
+data "aws_route53_zone" "for_domain" {
+  name = "${var.domain}."
+}
+
+resource "aws_route53_record" "a_record" {
+  zone_id = "${data.aws_route53_zone.for_domain.zone_id}"
+  name    = var.domain
+  type    = "A"
+
+  alias {
+    name = "${module.cdn.cf_domain_name}"
+    zone_id = "Z2FDTNDATAQYW2" # CloudFront ZoneID (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget.html)
+    evaluate_target_health = false
   }
 }
