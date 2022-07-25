@@ -8,13 +8,20 @@ module "acm_request_certificate" {
   ttl                               = "300"
 }
 
+data "aws_route53_zone" "for_domain" {
+  name = "${var.domain}."
+}
+
 module "cdn" {
   source  = "cloudposse/cloudfront-s3-cdn/aws"
   version = "0.82.4"
 
-  name                        = "${var.organization}-${var.domain}"
-  aliases                     = [var.domain]
-  dns_alias_enabled           = true
+  name    = "${var.organization}-${var.domain}"
+  aliases = [var.domain]
+
+  dns_alias_enabled = true
+  parent_zone_id    = data.aws_route53_zone.for_domain.zone_id
+
   website_enabled             = true
   s3_website_password_enabled = true
 
@@ -39,21 +46,5 @@ resource "null_resource" "trigger_deployment" {
 
   triggers = {
     always_run = "${timestamp()}"
-  }
-}
-
-data "aws_route53_zone" "for_domain" {
-  name = "${var.domain}."
-}
-
-resource "aws_route53_record" "a_record" {
-  zone_id = "${data.aws_route53_zone.for_domain.zone_id}"
-  name    = var.domain
-  type    = "A"
-
-  alias {
-    name = "${module.cdn.cf_domain_name}"
-    zone_id = "Z2FDTNDATAQYW2" # CloudFront ZoneID (https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-route53-aliastarget.html)
-    evaluate_target_health = false
   }
 }
