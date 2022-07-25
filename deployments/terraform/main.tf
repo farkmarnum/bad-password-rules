@@ -22,7 +22,10 @@ module "cdn" {
   dns_alias_enabled = true
   parent_zone_id    = data.aws_route53_zone.for_domain.zone_id
 
-  website_enabled             = true
+  website_enabled = true
+  index_document  = "index.html"
+  error_document  = "index.html"
+
   s3_website_password_enabled = true
   allow_ssl_requests_only     = false
 
