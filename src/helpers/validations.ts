@@ -12,9 +12,11 @@ import {
 
 const removeCensoredSwearWords = (s: string) =>
   censoredSwearWords.reduce((acc, w) => {
-    const globalRegexOfWord = RegExp(w.replace(/\*/g, '\\*'), 'g');
+    const globalRegexOfWord = RegExp(w.replace(/\*/g, '\\*'), 'gi');
     return acc.replace(globalRegexOfWord, '');
   }, s.toLowerCase());
+
+const getMaxLength = (seed: number) => 16 + (seed % 4);
 
 const easyValidations: ValidationsGenerator = (seed) => {
   const minLength = 4 + (seed % 4);
@@ -77,10 +79,17 @@ const mediumValidations: ValidationsGenerator = () => [
       ),
     msg: 'Password must contain a swear word that is 4 letters.',
   },
+  {
+    id: 'umlaut',
+    fn: (s) =>
+      ['ä', 'Ä', 'ö', 'Ö', 'ü', 'Ü', '¨'].some((char) => s.includes(char)),
+    msg: 'Password must include at least one umlaut.',
+  },
 ];
 
 const hardValidations: ValidationsGenerator = (seed) => {
-  const maxLength = 15 + (seed % 6);
+  const maxLength = getMaxLength(seed);
+
   const parity = seed % 2;
   const divisorA = 10 + (seed % 10);
   const divisorB = 20 + (seed % 10);
@@ -131,15 +140,15 @@ const hardValidations: ValidationsGenerator = (seed) => {
       msg: `All the individual digits in the password must add up to a multiple of ${divisorB}.`,
     },
     {
-      id: 'atMost3OfAnyCharacter',
+      id: 'atMost2OfAnyCharacter',
       fn: (s) =>
         !Object.values(
           s.split('').reduce((acc, char) => {
             acc[char] = acc[char] || 0 + 1;
             return acc;
           }, {} as Record<string, number>),
-        ).some((count) => count > 3),
-      msg: 'Password must not contain at most 3 of any character.',
+        ).some((count) => count > 2),
+      msg: 'Password must not contain more than 2 of any character.',
     },
     {
       id: 'digitOrder',
@@ -164,20 +173,39 @@ const hardValidations: ValidationsGenerator = (seed) => {
   ];
 };
 
-const reallyHardValidations: ValidationsGenerator = (seed) => [
-  ...generateSpecialCharactersRules(seed),
-  {
-    id: 'no*',
-    // Handle censored swear word case:
-    fn: (s) => !removeCensoredSwearWords(s).includes('*'),
-    msg: (s) =>
-      `Password must not contain an asterisk (*)${
-        removeCensoredSwearWords(s).length !== s.length
-          ? ', except for censored swear words'
-          : ''
-      }.`,
-  },
-];
+const reallyHardValidations: ValidationsGenerator = (seed) => {
+  const parity = seed % 2;
+
+  let exactLength = getMaxLength(seed) - 3;
+  if (exactLength % 2 !== parity) {
+    exactLength += 1;
+  }
+
+  return [
+    ...generateSpecialCharactersRules(seed),
+    {
+      id: 'no*',
+      // Handle censored swear word case:
+      fn: (s) => !removeCensoredSwearWords(s).includes('*'),
+      msg: (s) =>
+        `Password must not contain an asterisk (*)${
+          removeCensoredSwearWords(s).length !== s.length
+            ? ', except for censored swear words'
+            : ''
+        }.`,
+    },
+    {
+      id: 'exactLength',
+      fn: (s) => s.length === exactLength,
+      msg: `Password must be exactly ${exactLength} characters long`,
+    },
+    {
+      id: 'repeatedCharacters2',
+      fn: (s) => !/(.)\1/.test(removeCensoredSwearWords(s)),
+      msg: 'Password must not contain two of the same character in a row.',
+    },
+  ];
+};
 
 const shuffle = <T>(orig: Array<T>) => {
   const arr = [...orig];
