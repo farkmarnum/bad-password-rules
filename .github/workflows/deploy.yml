@@ -7,6 +7,9 @@ on:
   workflow_dispatch:
 
 env:
+  DOMAIN: badpasswordrules.com
+  ORGANIZATION: farkmarnum
+
   S3_BUCKET: ${{ secrets.S3_BUCKET }}
   CLOUDFRONT_DISTRIBUTION: ${{ secrets.CLOUDFRONT_DISTRIBUTION }}
 
@@ -29,8 +32,8 @@ jobs:
       - name: Terraform
         working-directory: deployments/terraform
         env:
-          TF_VAR_domain: bad-password-rules.com
-          TF_VAR_organization: farkmarnum
+          TF_VAR_domain: ${{ env.DOMAIN }}
+          TF_VAR_organization: ${{ env.ORGANIZATION }}
         run: |
           terraform init
           terraform validate -no-color
