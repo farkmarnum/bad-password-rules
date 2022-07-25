@@ -29,18 +29,23 @@ module "cdn" {
   depends_on          = [module.acm_request_certificate]
 }
 
-resource "null_resource" "trigger_deployment" {
+resource "null_resource" "build_and_upload" {
   provisioner "local-exec" {
     command = <<-EOF
+      set -eux
+
       yarn install
       yarn build
+
       aws s3 sync ./build s3://$S3_BUCKET --delete
       aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION --paths "/*"
     EOF
 
+    working_dir = "../.."
+
     environment = {
       CLOUDFRONT_DISTRIBUTION = module.cdn.cf_id
-      S3_BUCKET_NAME          = module.cdn.s3_bucket
+      S3_BUCKET               = module.cdn.s3_bucket
     }
   }
 
