@@ -14,7 +14,7 @@ const removeCensoredSwearWords = (s: string) =>
   censoredSwearWords.reduce((acc, w) => {
     const globalRegexOfWord = RegExp(w.replace(/\*/g, '\\*'), 'gi');
     return acc.replace(globalRegexOfWord, '');
-  }, s.toLowerCase());
+  }, s);
 
 const getMaxLength = (seed: number) => 16 + (seed % 4);
 
