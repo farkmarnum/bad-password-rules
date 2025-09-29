@@ -10,10 +10,35 @@ import {
   SPECIAL_CHARACTER,
 } from './characters';
 
+function* obscureUnicodeCharsGenerator() {
+  while (true) {
+    // these characters are obscure enough that we don't expect users to enter them
+    yield '\u200B'; // zero-width space
+    yield '\u200C'; // zero-width non-joiner
+  }
+}
+
 const removeCensoredSwearWords = (s: string) =>
   censoredSwearWords.reduce((acc, w) => {
     const globalRegexOfWord = RegExp(w.replace(/\*/g, '\\*'), 'gi');
-    return acc.replace(globalRegexOfWord, '');
+
+    // NOTE: here, we replace with obscure unicode characters instead of
+    // empty strings. Without this, we'd be bringing together the characters
+    // before and after the substring, which could cause other validations to
+    // fail.
+    //
+    // For example: '1f**k1' would become '11', which would violate the
+    // repeatedCharacters2 validation. Instead, it becomes '1<character>1`
+    //
+    // We use obscure unicode chars so that we don't accidentally insert a
+    // character that might match one of the two neighboring characters.
+    //
+    // Furthermore, we replace with alternating unicode characters so that
+    // '1f**kf**k1' becomes `1<charA><charB>1`.
+    const replacerChars = obscureUnicodeCharsGenerator();
+    const replacer = () => replacerChars.next().value as string;
+
+    return acc.replace(globalRegexOfWord, replacer);
   }, s);
 
 const getMaxLength = (seed: number) => 16 + (seed % 4);
