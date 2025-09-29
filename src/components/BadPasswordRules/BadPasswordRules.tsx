@@ -17,7 +17,19 @@ const runValidations = (password: string, validations: Validations) =>
     inputValue: password,
   }));
 
-const generateSeed = () => Math.round(Math.random() * 9999);
+const generateSeed = () => {
+  // if address has ?seed=, use that value
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('seed')) {
+    const seedStr = params.get('seed') ?? '';
+    const seed = parseInt(seedStr, 10);
+    if (!Number.isNaN(seed)) {
+      return seed;
+    }
+  }
+
+  return Math.round(Math.random() * 9999);
+};
 
 const BadPasswordRules = ({ api }: { api: BadPasswordRulesRef }) => {
   const [seed, setSeed] = useState(generateSeed());
